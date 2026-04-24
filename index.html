@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Roblox Log Viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 24px; }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #fff; }
+  #status { font-size: 12px; color: #888; margin-bottom: 12px; }
+  #logs { display: flex; flex-direction: column; gap: 6px; }
+  .log { background: #1a1a1a; border-left: 3px solid #444; padding: 8px 12px; border-radius: 4px; font-size: 13px; }
+  .log.info  { border-color: #378ADD; }
+  .log.warn  { border-color: #EF9F27; }
+  .log.error { border-color: #E24B4A; }
+  .log .time { color: #555; font-size: 11px; margin-bottom: 2px; }
+  .log .level { font-size: 11px; font-weight: 600; margin-right: 8px; }
+  .log.info  .level { color: #378ADD; }
+  .log.warn  .level { color: #EF9F27; }
+  .log.error .level { color: #E24B4A; }
+  .log .msg { color: #e0e0e0; }
+  .empty { color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>Roblox Log Viewer</h1>
+<div id="status">Connecting...</div>
+<div id="logs"><div class="empty">No logs yet.</div></div>
+
+<script>
+  async function fetchLogs() {
+    try {
+      const res = await fetch("/logs")
+      const logs = await res.json()
+      const container = document.getElementById("logs")
+      const status = document.getElementById("status")
+      status.textContent = `${logs.length} log(s) — last updated ${new Date().toLocaleTimeString()}`
+      if (!logs.length) {
+        container.innerHTML = '<div class="empty">No logs yet.</div>'
+        return
+      }
+      container.innerHTML = logs.map(log => `
+        <div class="log ${log.level}">
+          <div class="time">${log.timestamp}</div>
+          <div><span class="level">${log.level.toUpperCase()}</span><span class="msg">${log.message}</span></div>
+        </div>
+      `).join("")
+    } catch {
+      document.getElementById("status").textContent = "Error connecting to server."
+    }
+  }
+
+  fetchLogs()
+  setInterval(fetchLogs, 2000)
+</script>
+</body>
+</html>
